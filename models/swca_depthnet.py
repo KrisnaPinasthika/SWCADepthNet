@@ -5,7 +5,7 @@ from torchvision.models import (
     efficientnet_b5, EfficientNet_B5_Weights,
 )
 
-from .swca_helper import (
+from swca_helper import (
     MultiHeadCrossWindowAttention, 
     positional_encoding
 )
@@ -287,59 +287,70 @@ if __name__ == '__main__':
         device='cuda', 
         backbone_name='eff_b5', 
         window_sizes=5, 
+        explicit_hw=(480, 640),
         layers=2,
     ).to('cuda')
     
                     
-    print(model(img).shape)
+    # print(model(img).shape)
+    
+    from fvcore.nn import FlopCountAnalysis
+    flops = FlopCountAnalysis(model, img)
+    print('FLOPS TOTAL : ')
+    print(flops.total())
+    print("===="*5)
+
+    print('FLOPS By Operator : ')
+    print(flops.by_operator())
+    print("===="*5)
     
     
-    from prettytable import PrettyTable
-    def count_parameters(model):
+    # from prettytable import PrettyTable
+    # def count_parameters(model):
         
-        table = PrettyTable(["Modules", "Parameters"])
-        total_params = 0
+    #     table = PrettyTable(["Modules", "Parameters"])
+    #     total_params = 0
         
-        decoder = 0 
-        decoder_0 = 0
-        decoder_1 = 0
-        decoder_2 = 0
-        decoder_3 = 0
-        encoder = 0
-        dec_attn = 0
+    #     decoder = 0 
+    #     decoder_0 = 0
+    #     decoder_1 = 0
+    #     decoder_2 = 0
+    #     decoder_3 = 0
+    #     encoder = 0
+    #     dec_attn = 0
         
-        for name, parameter in model.named_parameters():
-            if not parameter.requires_grad:
-                continue
-            params = parameter.numel()
-            table.add_row([name, f"{params:,}"])
-            total_params += params
+    #     for name, parameter in model.named_parameters():
+    #         if not parameter.requires_grad:
+    #             continue
+    #         params = parameter.numel()
+    #         table.add_row([name, f"{params:,}"])
+    #         total_params += params
             
-            splitted_names = name.split('.')
-            if splitted_names[0] == 'decoder': 
-                decoder += params
+    #         splitted_names = name.split('.')
+    #         if splitted_names[0] == 'decoder': 
+    #             decoder += params
                 
-                if splitted_names[1] == '0': 
-                    decoder_0 += params
-                elif splitted_names[1] == '1': 
-                    decoder_1 += params
-                if splitted_names[1] == '2': 
-                    decoder_2 += params
-                elif splitted_names[1] == '3': 
-                    decoder_3 += params
+    #             if splitted_names[1] == '0': 
+    #                 decoder_0 += params
+    #             elif splitted_names[1] == '1': 
+    #                 decoder_1 += params
+    #             if splitted_names[1] == '2': 
+    #                 decoder_2 += params
+    #             elif splitted_names[1] == '3': 
+    #                 decoder_3 += params
                 
-                if splitted_names[2] == 'attentions': 
-                    dec_attn += params
-            else:
-                encoder += params
+    #             if splitted_names[2] == 'attentions': 
+    #                 dec_attn += params
+    #         else:
+    #             encoder += params
                 
-        # print(table)
-        print(f"Total Trainable Params: {total_params:,}")
-        print(f"Total Encoder Params: {encoder:,}")
-        print(f"Total Decoder Params: {decoder:,}")
-        print(f"Total Decoder 0 : {decoder_0:,} | 1 : {decoder_1:,} | 2 : {decoder_2:,} | 3 : {decoder_3:,}")
-        print(f"Total Attention : {dec_attn:,}")
+    #     # print(table)
+    #     print(f"Total Trainable Params: {total_params:,}")
+    #     print(f"Total Encoder Params: {encoder:,}")
+    #     print(f"Total Decoder Params: {decoder:,}")
+    #     print(f"Total Decoder 0 : {decoder_0:,} | 1 : {decoder_1:,} | 2 : {decoder_2:,} | 3 : {decoder_3:,}")
+    #     print(f"Total Attention : {dec_attn:,}")
         
-        return total_params
+    #     return total_params
     
-    count_parameters(model)
+    # count_parameters(model)
